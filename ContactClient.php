@@ -1,15 +1,22 @@
 <?php
 
-namespace rapidweb\googlecontacts\factories;
+namespace rapidweb\googlecontacts;
 
 use rapidweb\googlecontacts\helpers\GoogleHelper;
 use rapidweb\googlecontacts\objects\Contact;
 
-abstract class ContactFactory
+class ContactClient
 {
-    public static function getAll()
+    public $config;
+
+    public function __construct($config)
     {
-        $client = GoogleHelper::getClient();
+        $this->config = $config;
+    }
+
+    public function getAll()
+    {
+        $client = GoogleHelper::getClient($this->config);
 
         $req = new \Google_Http_Request('https://www.google.com/m8/feeds/contacts/default/full?max-results=10000&updated-min=2007-03-16T00:00:00');
 
@@ -23,17 +30,17 @@ abstract class ContactFactory
         foreach ($xmlContacts->entry as $xmlContactsEntry) {
             $contactDetails = array();
 
-            $contactDetails['id'] = (string) $xmlContactsEntry->id;
-            $contactDetails['name'] = (string) $xmlContactsEntry->title;
+            $contactDetails['id'] = (string)$xmlContactsEntry->id;
+            $contactDetails['name'] = (string)$xmlContactsEntry->title;
 
             foreach ($xmlContactsEntry->children() as $key => $value) {
                 $attributes = $value->attributes();
 
                 if ($key == 'link') {
                     if ($attributes['rel'] == 'edit') {
-                        $contactDetails['editURL'] = (string) $attributes['href'];
+                        $contactDetails['editURL'] = (string)$attributes['href'];
                     } elseif ($attributes['rel'] == 'self') {
-                        $contactDetails['selfURL'] = (string) $attributes['href'];
+                        $contactDetails['selfURL'] = (string)$attributes['href'];
                     }
                 }
             }
@@ -42,24 +49,24 @@ abstract class ContactFactory
             foreach ($contactGDNodes as $key => $value) {
                 switch ($key) {
                     case 'organization':
-                        $contactDetails[$key]['orgName'] = (string) $value->orgName;
-                        $contactDetails[$key]['orgTitle'] = (string) $value->orgTitle;
+                        $contactDetails[$key]['orgName'] = (string)$value->orgName;
+                        $contactDetails[$key]['orgTitle'] = (string)$value->orgTitle;
                         break;
                     case 'email':
                         $attributes = $value->attributes();
-                        $emailadress = (string) $attributes['address'];
+                        $emailadress = (string)$attributes['address'];
                         $emailtype = substr(strstr($attributes['rel'], '#'), 1);
                         $contactDetails[$key][$emailtype] = $emailadress;
                         break;
                     case 'phoneNumber':
                         $attributes = $value->attributes();
-                        $uri = (string) $attributes['uri'];
+                        $uri = (string)$attributes['uri'];
                         $type = substr(strstr($attributes['rel'], '#'), 1);
                         $e164 = substr(strstr($uri, ':'), 1);
                         $contactDetails[$key][$type] = $e164;
                         break;
                     default:
-                        $contactDetails[$key] = (string) $value;
+                        $contactDetails[$key] = (string)$value;
                         break;
                 }
             }
@@ -70,9 +77,9 @@ abstract class ContactFactory
         return $contactsArray;
     }
 
-    public static function getBySelfURL($selfURL)
+    public function getBySelfURL($selfURL)
     {
-        $client = GoogleHelper::getClient();
+        $client = GoogleHelper::getClient($this->config);
 
         $req = new \Google_Http_Request($selfURL);
 
@@ -87,17 +94,17 @@ abstract class ContactFactory
 
         $contactDetails = array();
 
-        $contactDetails['id'] = (string) $xmlContactsEntry->id;
-        $contactDetails['name'] = (string) $xmlContactsEntry->title;
+        $contactDetails['id'] = (string)$xmlContactsEntry->id;
+        $contactDetails['name'] = (string)$xmlContactsEntry->title;
 
         foreach ($xmlContactsEntry->children() as $key => $value) {
             $attributes = $value->attributes();
 
             if ($key == 'link') {
                 if ($attributes['rel'] == 'edit') {
-                    $contactDetails['editURL'] = (string) $attributes['href'];
+                    $contactDetails['editURL'] = (string)$attributes['href'];
                 } elseif ($attributes['rel'] == 'self') {
-                    $contactDetails['selfURL'] = (string) $attributes['href'];
+                    $contactDetails['selfURL'] = (string)$attributes['href'];
                 }
             }
         }
@@ -108,18 +115,18 @@ abstract class ContactFactory
             $attributes = $value->attributes();
 
             if ($key == 'email') {
-                $contactDetails[$key] = (string) $attributes['address'];
+                $contactDetails[$key] = (string)$attributes['address'];
             } else {
-                $contactDetails[$key] = (string) $value;
+                $contactDetails[$key] = (string)$value;
             }
         }
 
         return new Contact($contactDetails);
     }
 
-    public static function submitUpdates(Contact $updatedContact)
+    public function submitUpdates(Contact $updatedContact)
     {
-        $client = GoogleHelper::getClient();
+        $client = GoogleHelper::getClient($this->config);
 
         $req = new \Google_Http_Request($updatedContact->selfURL);
 
@@ -165,17 +172,17 @@ abstract class ContactFactory
 
         $contactDetails = array();
 
-        $contactDetails['id'] = (string) $xmlContactsEntry->id;
-        $contactDetails['name'] = (string) $xmlContactsEntry->title;
+        $contactDetails['id'] = (string)$xmlContactsEntry->id;
+        $contactDetails['name'] = (string)$xmlContactsEntry->title;
 
         foreach ($xmlContactsEntry->children() as $key => $value) {
             $attributes = $value->attributes();
 
             if ($key == 'link') {
                 if ($attributes['rel'] == 'edit') {
-                    $contactDetails['editURL'] = (string) $attributes['href'];
+                    $contactDetails['editURL'] = (string)$attributes['href'];
                 } elseif ($attributes['rel'] == 'self') {
-                    $contactDetails['selfURL'] = (string) $attributes['href'];
+                    $contactDetails['selfURL'] = (string)$attributes['href'];
                 }
             }
         }
@@ -186,16 +193,16 @@ abstract class ContactFactory
             $attributes = $value->attributes();
 
             if ($key == 'email') {
-                $contactDetails[$key] = (string) $attributes['address'];
+                $contactDetails[$key] = (string)$attributes['address'];
             } else {
-                $contactDetails[$key] = (string) $value;
+                $contactDetails[$key] = (string)$value;
             }
         }
 
         return new Contact($contactDetails);
     }
 
-    public static function create($name, $phoneNumber, $emailAddress)
+    public function create($name, $phoneNumber, $emailAddress = null)
     {
         $doc = new \DOMDocument();
         $doc->formatOutput = true;
@@ -208,18 +215,19 @@ abstract class ContactFactory
         $title = $doc->createElement('title', $name);
         $entry->appendChild($title);
 
-        $email = $doc->createElement('gd:email');
-        $email->setAttribute('rel', 'http://schemas.google.com/g/2005#work');
-        $email->setAttribute('address', $emailAddress);
-        $entry->appendChild($email);
-
+        if ($emailAddress) {
+            $email = $doc->createElement('gd:email');
+            $email->setAttribute('rel', 'http://schemas.google.com/g/2005#work');
+            $email->setAttribute('address', $emailAddress);
+            $entry->appendChild($email);
+        }
         $contact = $doc->createElement('gd:phoneNumber', $phoneNumber);
         $contact->setAttribute('rel', 'http://schemas.google.com/g/2005#work');
         $entry->appendChild($contact);
 
         $xmlToSend = $doc->saveXML();
 
-        $client = GoogleHelper::getClient();
+        $client = GoogleHelper::getClient($this->config);
 
         $req = new \Google_Http_Request('https://www.google.com/m8/feeds/contacts/default/full');
         $req->setRequestHeaders(array('content-type' => 'application/atom+xml; charset=UTF-8; type=feed'));
@@ -237,17 +245,17 @@ abstract class ContactFactory
 
         $contactDetails = array();
 
-        $contactDetails['id'] = (string) $xmlContactsEntry->id;
-        $contactDetails['name'] = (string) $xmlContactsEntry->title;
+        $contactDetails['id'] = (string)$xmlContactsEntry->id;
+        $contactDetails['name'] = (string)$xmlContactsEntry->title;
 
         foreach ($xmlContactsEntry->children() as $key => $value) {
             $attributes = $value->attributes();
 
             if ($key == 'link') {
                 if ($attributes['rel'] == 'edit') {
-                    $contactDetails['editURL'] = (string) $attributes['href'];
+                    $contactDetails['editURL'] = (string)$attributes['href'];
                 } elseif ($attributes['rel'] == 'self') {
-                    $contactDetails['selfURL'] = (string) $attributes['href'];
+                    $contactDetails['selfURL'] = (string)$attributes['href'];
                 }
             }
         }
@@ -258,9 +266,9 @@ abstract class ContactFactory
             $attributes = $value->attributes();
 
             if ($key == 'email') {
-                $contactDetails[$key] = (string) $attributes['address'];
+                $contactDetails[$key] = (string)$attributes['address'];
             } else {
-                $contactDetails[$key] = (string) $value;
+                $contactDetails[$key] = (string)$value;
             }
         }
 

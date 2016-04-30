@@ -1,9 +1,9 @@
 {
-    "name": "rapidwebltd/php-google-contacts-v3-api",
+    "name": "atanych/php-google-contacts-v3-api",
     "type": "library",
-    "description": "PHP library for the Google Contacts API (v3)",
+    "description": "PHP library for the Google Contacts API (v3) (fork)",
     "keywords": ["google", "php", "contacts"],
-    "homepage": "https://github.com/rapidwebltd/php-google-contacts-v3-api",
+    "homepage": "https://github.com/atanych/php-google-contacts-v3-api",
     "license": "MIT",
     "require": {
         "php": ">=5.2.1",
