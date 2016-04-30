@@ -11,5 +11,6 @@ $client = new ContactClient([
     "developerKey" => "ya29.CjHUAirRY712x6riA3xVBp2MD2OzLvEi5bgboT5yzA-e4CSVe7bHcQZb4hy6OKzGjHD2",
     "refreshToken" => "1/kcSzMQflgfbjO4YaIoeRM1VJy31pk4gyON0v6t9v4GQ"
 ]);
-$data = $client->create('vovchik', '+375447685555');
-print_r($data);
+$data = $client->getAll();
+//$data = $client->create('vovchik', '+375447685555');
+print_r(count($data));
