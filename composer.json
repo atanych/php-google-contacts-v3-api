@@ -6,8 +6,7 @@
     "homepage": "https://github.com/atanych/php-google-contacts-v3-api",
     "license": "MIT",
     "require": {
-        "php": ">=5.2.1",
-        "google/apiclient": ">=1.1.4 <2.0.0"
+        "php": ">=5.2.1"
     },
     "autoload": {
         "psr-4": {
